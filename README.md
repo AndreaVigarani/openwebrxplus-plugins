@@ -109,6 +109,7 @@ Each plugin is documented in its own folder.
 | Name | Description |
 | :------ | :---------- |
 |[~~search_bookmarks~~](receiver/search_bookmarks)|(**deprecated** in OWRX+ v1.2.118)) Search all OWRX bookmarks and click to tune ([Yannis](#contributors))|
+|[~~show_band_plan~~](receiver/show_band_plan)|Show the band plan ribbon by default ([fustinoni-net](#contributors))|
 |[~~keyboard_shortcuts~~](receiver/keyboard_shortcuts)|Add keyboard shortcuts|
 |[~~set_waterfall_theme~~](receiver/set_waterfall_theme)|Set the default waterfall theme ([fustinoni-net](#contributors))|
 
