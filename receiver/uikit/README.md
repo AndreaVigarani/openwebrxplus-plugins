@@ -2,7 +2,7 @@
 
 UI helper toolkit for OpenWebRX+ plugins. Provides a dockable panel, settings modal, plugin modals, toast notifications, loading overlays, and helper methods for other plugins to build UI.
 
-**Version:** 0.3
+**Version:** 0.6
 
 ## Preview
 
@@ -76,6 +76,10 @@ Shows or hides the panel. Persists to settings. In push mode, adjusts page layou
 
 Sets panel mode (`overlay` or `push`). In push mode the panel shifts page content aside instead of floating over it.
 
+### `setPanelSize(pct)`
+
+Sets the docked panel size as a percent of the viewport along the active axis. For `top` / `bottom` this changes height; for `left` / `right` it changes width.
+
 ### `setPanelOpacity(value)`
 
 Sets the inactive opacity (0.1–1.0). Saves to settings and restarts the inactivity timer.
@@ -87,6 +91,10 @@ Parses an SVG string and returns a proper SVG DOM element.
 ---
 
 ## Panel Behaviour
+
+### Resizing
+
+The docked panel can be resized by dragging the thin handle on its inner edge. The drag updates the same persisted `panelSize` setting that the UIKit settings slider uses, so manual resizing and settings-based sizing stay in sync.
 
 ### Overlay vs Push mode
 
@@ -104,6 +112,10 @@ When `autoHideDelay` is greater than 0, a timer starts on every mouse movement a
 - **Auto-hide on** — when the timer fires the panel is hidden entirely (respecting push layout in push mode). Moving the mouse reopens it automatically.
 
 Setting `autoHideDelay` to `0` disables the timer entirely; the panel stays at `opacityActive` at all times.
+
+## Code
+
+[Github repo](https://github.com/0xAF/openwebrxplus-plugins/tree/main/receiver/uikit)
 
 ---
 
@@ -416,7 +428,7 @@ All return an `<svg>` element sized 16×16 by default.
 | `iconArrow(dir)` | Chevron arrow. `dir`: `'up'` \| `'down'` \| `'left'` \| `'right'` |
 | `iconCog()` | Settings / gear icon |
 | `iconChevron()` | Up-pointing chevron (collapse indicator) |
-| `iconHide()` | Horizontal lines (hide/minimise indicator) |
+| `iconHide(dir?)` | Directional minimise icon (`up`, `right`, `down`, `left`) |
 | `iconClose()` | × close icon |
 | `iconPanel()` | Panel / window icon (24×24) |
 

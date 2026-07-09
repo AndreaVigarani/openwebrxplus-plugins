@@ -225,8 +225,17 @@ Plugins.uikit.iconChevron = function () {
 	return this.buildSvg('0 0 24 24', ['<path d="M8 14l4-4 4 4"/>']);
 };
 
-Plugins.uikit.iconHide = function () {
-	return this.buildSvg('0 0 24 24', ['<path d="M6 12h12"/>', '<path d="M8 16h8"/>']);
+Plugins.uikit.iconHide = function (dir) {
+	switch (dir) {
+		case 'left':
+			return this.buildSvg('0 0 24 24', ['<path d="M6 5v14"/>', '<path d="M16 8l-4 4 4 4"/>']);
+		case 'right':
+			return this.buildSvg('0 0 24 24', ['<path d="M18 5v14"/>', '<path d="M8 8l4 4-4 4"/>']);
+		case 'up':
+			return this.buildSvg('0 0 24 24', ['<path d="M5 6h14"/>', '<path d="M8 16l4-4 4 4"/>']);
+		default:
+			return this.buildSvg('0 0 24 24', ['<path d="M5 18h14"/>', '<path d="M8 8l4 4 4-4"/>']);
+	}
 };
 
 Plugins.uikit.iconClose = function () {
@@ -262,6 +271,19 @@ Plugins.uikit._updateMiniButtonIcon = function () {
 	}
 	this._ui.miniButton.innerHTML = '';
 	this._ui.miniButton.appendChild(this.iconArrow(dir));
+};
+
+Plugins.uikit._updateHideButtonIcon = function () {
+	if (!this._ui || !this._ui.hideBtn) return;
+	var dir = 'down';
+	switch (this._settings.position) {
+		case 'top': dir = 'up'; break;
+		case 'left': dir = 'left'; break;
+		case 'right': dir = 'right'; break;
+		default: dir = 'down';
+	}
+	this._ui.hideBtn.innerHTML = '';
+	this._ui.hideBtn.appendChild(this.iconHide(dir));
 };
 
 // ── Button Factory ──────────────────────────────────────────────────────────

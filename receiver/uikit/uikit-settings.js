@@ -131,30 +131,25 @@ Plugins.uikit._renderSettingsUI = function (slug) {
 		data: { role: 'position-options' }
 	});
 
-	// Panel size slider (20 / 30 / 40 / 50 % of screen)
+	// Panel size slider mirrors the draggable inner-edge resize handle.
 	var panelSizeLabel = this.el('div', {
 		cls: 'owrx-uikit__settings-label',
 		text: this._getPanelSizeLabel()
 	});
 	var panelSizeSlider = this.el('input', {
 		type: 'range',
-		attrs: { min: '20', max: '50', step: '5' },
+		attrs: { min: '20', max: '50', step: '1' },
 		style: { width: '100%' },
 		on: {
 			input: function (e) {
-				self._settings.panelSize = parseInt(e.target.value, 10);
-				panelSizeLabel.textContent = self._getPanelSizeLabel();
-				self._applyPanelSize();
+				self._setPanelSizePreview(parseInt(e.target.value, 10));
 			},
 			change: function (e) {
-				self._settings.panelSize = parseInt(e.target.value, 10);
-				self._saveSettings();
-				self._applyPanelSize();
-				self._applyPanelMode();
+				self.setPanelSize(parseInt(e.target.value, 10));
 			}
 		}
 	});
-	panelSizeSlider.value = this._settings.panelSize || 30;
+	panelSizeSlider.value = this._normalizePanelSize(this._settings.panelSize);
 
 	// Visibility toggle
 	var visibilityInput = this.el('input', {
@@ -382,15 +377,15 @@ Plugins.uikit._renderOpacitySlider = function () {
 };
 
 Plugins.uikit._getPanelSizeLabel = function () {
-	var pct = this._settings.panelSize || 30;
+	var pct = this._normalizePanelSize(this._settings.panelSize);
 	var pos = this._settings.position || 'bottom';
 	var axis = (pos === 'bottom' || pos === 'top') ? 'Height' : 'Width';
-	return axis + ': ' + pct + '% of screen';
+	return axis + ': ' + pct + '% of screen (or drag panel edge)';
 };
 
 Plugins.uikit._renderPanelSizeSlider = function () {
 	if (this._ui.panelSizeLabel) this._ui.panelSizeLabel.textContent = this._getPanelSizeLabel();
-	if (this._ui.panelSizeSlider) this._ui.panelSizeSlider.value = this._settings.panelSize || 30;
+	if (this._ui.panelSizeSlider) this._ui.panelSizeSlider.value = this._normalizePanelSize(this._settings.panelSize);
 };
 
 // Renders mode radio buttons (overlay / push).

@@ -23,8 +23,8 @@ so the first two lines are optional.
 
 ## Dependencies
 
-- `utils` >= 0.6
-- `uikit` >= 0.3
+- `utils` >= 0.8
+- `uikit` >= 0.4
 
 ## Behaviour
 
@@ -34,6 +34,7 @@ so the first two lines are optional.
 - The original panel is prevented from popping up on errors (`toggle_panel` is intercepted).
 - When the server enables chat (`allow_chat: true`), a **nickname + message** input row appears at the bottom of the tab. Sending calls `Chat.sendMessage()` directly.
 - When chat is disabled (`allow_chat: false`), the input row is hidden and the tab acts as a read-only log viewer.
+- Observer wiring for tab/input visibility sync uses `Plugins.utils.observe_mutations()`.
 - Messages auto-scroll to the bottom as new ones arrive.
 
 ## Code

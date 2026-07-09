@@ -4,20 +4,21 @@
  * This plugin is for developers. It demonstrates every UIKit API with
  * working, copy-paste-ready code. Enable it in init.js to explore.
  *
- * Dependencies: uikit >= 0.5
+ * Dependencies: uikit >= 0.6
  * License: MIT
+ * Copyright (c) 2026 Stanislav Lechev [0xAF], LZ2SLL
  */
 
 Plugins.example_uikit = Plugins.example_uikit || {};
-Plugins.example_uikit._version = 0.5;
+Plugins.example_uikit._version = 0.6;
 Plugins.example_uikit.no_css = true;
 
 Plugins.example_uikit.init = async function () {
-	if (!Plugins.isLoaded('uikit', 0.3)) {
+	if (!Plugins.isLoaded('uikit', 0.6)) {
 		await Plugins.load('https://0xaf.github.io/openwebrxplus-plugins/receiver/uikit/uikit.js');
 	}
-	if (!Plugins.isLoaded('uikit', 0.3)) {
-		console.error('[example_uikit] failed to load uikit >= 0.3');
+	if (!Plugins.isLoaded('uikit', 0.6)) {
+		console.error('[example_uikit] failed to load uikit >= 0.6');
 		return false;
 	}
 
@@ -38,6 +39,32 @@ Plugins.example_uikit.init = async function () {
 	var starIcon = Plugins.uikit.buildSvg('0 0 24 24', [
 		'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01z"/>'
 	]);
+
+	// ── Panel Tab ───────────────────────────────────────────────────────
+	var panelSlug = Plugins.uikit.addTab('Panel', { order: 899 });
+	var panelEl = Plugins.uikit.getTabEl(panelSlug);
+	if (panelEl) {
+		var panelWrap = document.createElement('div');
+		var intro = document.createElement('div');
+		intro.className = 'owrx-uikit__settings-section';
+		intro.innerHTML =
+			'<div class="owrx-uikit__settings-title">Docked Panel</div>' +
+			'<div class="owrx-uikit__settings-label">Drag the thin handle on the panel\'s inner edge to resize it. The setting is persisted and also shown in the UIKit settings tab.</div>';
+		panelWrap.appendChild(intro);
+
+		panelWrap.appendChild(btn('Bottom', 'default', function () { Plugins.uikit.setPanelPosition('bottom'); }));
+		panelWrap.appendChild(btn('Top', 'default', function () { Plugins.uikit.setPanelPosition('top'); }));
+		panelWrap.appendChild(btn('Right', 'default', function () { Plugins.uikit.setPanelPosition('right'); }));
+		panelWrap.appendChild(btn('Left', 'default', function () { Plugins.uikit.setPanelPosition('left'); }));
+		panelWrap.appendChild(btn('Overlay', 'ghost', function () { Plugins.uikit.setPanelMode('overlay'); }));
+		panelWrap.appendChild(btn('Push', 'ghost', function () { Plugins.uikit.setPanelMode('push'); }));
+		panelWrap.appendChild(btn('Size 25%', 'primary', function () { Plugins.uikit.setPanelSize(25); }));
+		panelWrap.appendChild(btn('Size 40%', 'primary', function () { Plugins.uikit.setPanelSize(40); }));
+		panelWrap.appendChild(btn('Open UI Settings', 'default', function () { Plugins.uikit.openSettings('UI'); }));
+
+		panelEl.innerHTML = '';
+		panelEl.appendChild(panelWrap);
+	}
 
 	// ── Buttons Tab ─────────────────────────────────────────────────────
 	var buttonsSlug = Plugins.uikit.addTab('Buttons', { order: 902 });

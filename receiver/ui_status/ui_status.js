@@ -59,11 +59,11 @@ Plugins.ui_status.init = async function () {
 	var baseUrl = this._baseUrl;
 	var self = this;
 
-	if (!Plugins.isLoaded('utils', 0.7)) {
+	if (!Plugins.isLoaded('utils', 0.8)) {
 		await Plugins.load(baseUrl + 'utils/utils.js');
 	}
-	if (!Plugins.isLoaded('utils', 0.7)) {
-		console.error('[ui_status] requires utils >= 0.7');
+	if (!Plugins.isLoaded('utils', 0.8)) {
+		console.error('[ui_status] requires utils >= 0.8');
 		return false;
 	}
 
@@ -96,20 +96,20 @@ Plugins.ui_status.init = async function () {
 			children: [fillEl, textEl]
 		});
 
-		// Initial sync
-		self._syncBar(origEl, mirrorEl);
-
-		// Live sync via MutationObserver
-		var obs = new MutationObserver(function () {
-			self._syncBar(origEl, mirrorEl);
-		});
-		obs.observe(origEl, {
-			subtree: true,
-			childList: true,
-			attributes: true,
-			characterData: true
-		});
-		self._observers.push(obs);
+		// Initial + live sync via utils observer helper
+		self._observers = self._observers.concat(Plugins.utils.observe_mutations(
+			origEl,
+			{
+				subtree: true,
+				childList: true,
+				attributes: true,
+				characterData: true
+			},
+			function () {
+				self._syncBar(origEl, mirrorEl);
+			},
+			true
+		));
 
 		mirrorBars.push(mirrorEl);
 	});

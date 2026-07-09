@@ -97,6 +97,14 @@ Plugins.uikit._buildRoot = function () {
 	tabsScroll.addEventListener('scroll', function () { self._updateTabArrows(); });
 
 	var content = this.el('div', { cls: 'owrx-uikit__content openwebrx-panel' });
+	var resizeHandle = this.el('div', {
+		cls: 'owrx-uikit__resize-handle',
+		attrs: {
+			role: 'separator',
+			'aria-orientation': 'horizontal',
+			tabindex: '0'
+		}
+	});
 
 	panel.appendChild(tabsBar);
 	panel.appendChild(content);
@@ -111,6 +119,7 @@ Plugins.uikit._buildRoot = function () {
 	});
 
 	root.appendChild(panel);
+	root.appendChild(resizeHandle);
 	root.appendChild(miniButton);
 	document.body.appendChild(root);
 
@@ -124,9 +133,13 @@ Plugins.uikit._buildRoot = function () {
 		tabsArrowLeft: tabsArrowLeft,
 		tabsArrowRight: tabsArrowRight,
 		content: content,
+		resizeHandle: resizeHandle,
 		settingsBtn: settingsBtn,
 		miniButton: miniButton
 	};
+
+	this._updateHideButtonIcon();
+	this._bindPanelResize();
 };
 
 // No default tab — plugins add their own via addTab().
@@ -352,13 +365,25 @@ Plugins.uikit._applyPosition = function () {
 	var root = this._ui.root;
 	root.classList.remove('owrx-uikit--pos-top', 'owrx-uikit--pos-right', 'owrx-uikit--pos-bottom', 'owrx-uikit--pos-left');
 	root.classList.add('owrx-uikit--pos-' + this._settings.position);
+	this._updateHideButtonIcon();
+	this._updateResizeHandle();
 	this._applyPanelSize();
 	this._updateMiniButtonIcon();
 };
 
+Plugins.uikit._getPanelSizeBounds = function () {
+	return { min: 20, max: 50 };
+};
+
+Plugins.uikit._normalizePanelSize = function (pct) {
+	var bounds = this._getPanelSizeBounds();
+	pct = Math.round(parseFloat(pct) || this._defaults.panelSize || 25);
+	return Math.max(bounds.min, Math.min(bounds.max, pct));
+};
+
 Plugins.uikit._applyPanelSize = function () {
 	if (!this._ui || !this._ui.panel) return;
-	var pct = this._settings.panelSize || 30;
+	var pct = this._normalizePanelSize(this._settings.panelSize);
 	var pos = this._settings.position || 'bottom';
 	var panel = this._ui.panel;
 	if (pos === 'bottom' || pos === 'top') {
@@ -378,12 +403,20 @@ Plugins.uikit.setFooter = function (el) {
 };
 
 Plugins.uikit.setPanelSize = function (pct) {
-	pct = Math.round(pct / 5) * 5;
-	pct = Math.max(20, Math.min(50, pct));
+	pct = this._normalizePanelSize(pct);
 	this._settings.panelSize = pct;
 	this._saveSettings();
 	this._applyPanelSize();
 	this._applyPanelMode();
+	this._renderPanelSizeSlider();
+};
+
+Plugins.uikit._setPanelSizePreview = function (pct) {
+	pct = this._normalizePanelSize(pct);
+	if (this._settings.panelSize === pct) return;
+	this._settings.panelSize = pct;
+	this._applyPanelSize();
+	this._applyLayout();
 	this._renderPanelSizeSlider();
 };
 
@@ -551,6 +584,84 @@ Plugins.uikit._bindResize = function () {
 		}
 		self._renderPositionOptions();
 		self._updateTabArrows();
+	});
+};
+
+Plugins.uikit._updateResizeHandle = function () {
+	if (!this._ui || !this._ui.resizeHandle) return;
+	var pos = this._settings.position || 'bottom';
+	this._ui.resizeHandle.setAttribute('aria-orientation', (pos === 'left' || pos === 'right') ? 'vertical' : 'horizontal');
+	this._ui.resizeHandle.title = 'Drag to resize panel';
+	this._ui.resizeHandle.setAttribute('aria-label', 'Drag to resize panel');
+};
+
+Plugins.uikit._bindPanelResize = function () {
+	if (!this._ui || !this._ui.resizeHandle) return;
+
+	var self = this;
+	var dragState = null;
+	var onVisibilityChange = function () {
+		if (document.hidden) stopDrag();
+	};
+	var onWindowBlur = function () {
+		stopDrag();
+	};
+
+	function onMove(e) {
+		if (!dragState) return;
+		var pos = self._settings.position || 'bottom';
+		var dx = e.clientX - dragState.startX;
+		var dy = e.clientY - dragState.startY;
+		var pixels = dragState.startSize;
+
+		if (pos === 'bottom') pixels = dragState.startSize - dy;
+		else if (pos === 'top') pixels = dragState.startSize + dy;
+		else if (pos === 'right') pixels = dragState.startSize - dx;
+		else pixels = dragState.startSize + dx;
+
+		var viewport = dragState.viewport || 1;
+		self._setPanelSizePreview((pixels / viewport) * 100);
+		e.preventDefault();
+	}
+
+	function stopDrag() {
+		if (!dragState) return;
+		document.removeEventListener('mousemove', onMove);
+		document.removeEventListener('mouseup', stopDrag);
+		document.removeEventListener('visibilitychange', onVisibilityChange);
+		window.removeEventListener('blur', onWindowBlur);
+		document.body.classList.remove('owrx-uikit--resizing');
+		self._state.pauseFade = false;
+		self.setPanelSize(self._settings.panelSize);
+		dragState = null;
+	}
+
+	this._ui.resizeHandle.addEventListener('mousedown', function (e) {
+		if (e.button !== 0) return;
+		var pos = self._settings.position || 'bottom';
+		var size = self._getPanelSize();
+		dragState = {
+			startX: e.clientX,
+			startY: e.clientY,
+			startSize: (pos === 'left' || pos === 'right') ? size.width : size.height,
+			viewport: (pos === 'left' || pos === 'right') ? window.innerWidth : window.innerHeight
+		};
+		self._state.pauseFade = true;
+		document.body.classList.add('owrx-uikit--resizing');
+		document.addEventListener('mousemove', onMove);
+		document.addEventListener('mouseup', stopDrag);
+		document.addEventListener('visibilitychange', onVisibilityChange);
+		window.addEventListener('blur', onWindowBlur);
+		e.preventDefault();
+	});
+
+	this._ui.resizeHandle.addEventListener('keydown', function (e) {
+		var delta = 0;
+		if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') delta = -1;
+		if (e.key === 'ArrowDown' || e.key === 'ArrowRight') delta = 1;
+		if (!delta) return;
+		self.setPanelSize((self._settings.panelSize || self._defaults.panelSize || 25) + delta);
+		e.preventDefault();
 	});
 };
 

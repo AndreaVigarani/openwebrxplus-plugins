@@ -5,7 +5,7 @@ permalink: /receiver/example_uikit
 ---
 
 This `receiver` plugin is an interactive demo for plugin developers.
-It showcases every feature of the **uikit** plugin (v0.2+) with working,
+It showcases every feature of the **uikit** plugin (v0.6+) with working,
 copy-paste-ready code.
 
 **There is no point in enabling this plugin for end users.**
@@ -13,6 +13,7 @@ copy-paste-ready code.
 ## What it demonstrates
 
 - **Panel tab** with buttons for each feature
+- **Docked panel resizing** — drag the panel's inner edge or use the demo panel controls
 - **Settings tab** added to the UIKit settings modal
 - **Modals** — basic, close-left, no title bar, floating (no backdrop), resizable, custom border, lifecycle hooks
 - **Dialogs** — `info()` and `question()` with Promise-based flow
@@ -32,7 +33,7 @@ Note: `example_uikit` will auto-load uikit if it's not already loaded, so the fi
 
 ## Dependencies
 
-- `uikit` >= 0.2
+- `uikit` >= 0.6
 
 ## Code
 

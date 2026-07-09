@@ -29,6 +29,7 @@ Plugins.ui_chat._unreadCount = 0;
 Plugins.ui_chat._panelHovered = false;
 Plugins.ui_chat._originalPanelEnabled = false;
 Plugins.ui_chat._lsKey = 'ui_chat';
+Plugins.ui_chat._observers = [];
 
 Plugins.ui_chat._isTabVisible = function () {
 	var root = document.getElementById('owrx-uikit-root');
@@ -127,11 +128,11 @@ Plugins.ui_chat._syncInputRow = function () {
 Plugins.ui_chat.init = async function () {
 	var baseUrl = this._baseUrl;
 
-	if (!Plugins.isLoaded('utils', 0.7)) {
+	if (!Plugins.isLoaded('utils', 0.8)) {
 		await Plugins.load(baseUrl + 'utils/utils.js');
 	}
-	if (!Plugins.isLoaded('utils', 0.7)) {
-		console.error('[ui_chat] requires utils >= 0.7');
+	if (!Plugins.isLoaded('utils', 0.8)) {
+		console.error('[ui_chat] requires utils >= 0.8');
 		return false;
 	}
 
@@ -170,13 +171,24 @@ Plugins.ui_chat.init = async function () {
 
 	// ── Reset unread when tab becomes visible ───────────────────────────────
 
-	// MutationObserver: re-check read state when tab activation or panel visibility changes
-	var readObserver = new MutationObserver(function () {
-		if (self._isTabVisible()) self._markRead();
-	});
-	readObserver.observe(tabEl, { attributes: true, attributeFilter: ['class'] });
+	// Re-check read state when tab activation or panel visibility changes
+	self._observers = self._observers.concat(Plugins.utils.observe_mutations(
+		tabEl,
+		{ attributes: true, attributeFilter: ['class'] },
+		function () {
+			if (self._isTabVisible()) self._markRead();
+		}
+	));
 	var uikitRoot = document.getElementById('owrx-uikit-root');
-	if (uikitRoot) readObserver.observe(uikitRoot, { attributes: true, attributeFilter: ['class'] });
+	if (uikitRoot) {
+		self._observers = self._observers.concat(Plugins.utils.observe_mutations(
+			uikitRoot,
+			{ attributes: true, attributeFilter: ['class'] },
+			function () {
+				if (self._isTabVisible()) self._markRead();
+			}
+		));
+	}
 
 	// Panel hover: messages are only "read" while the mouse is over the panel
 	var uikitPanel = document.querySelector('#owrx-uikit-root .owrx-uikit__panel');
@@ -369,9 +381,12 @@ Plugins.ui_chat.init = async function () {
 
 	var origInputs = document.getElementById('openwebrx-chat-inputs');
 	if (origInputs) {
-		self._syncInputRow();
-		var observer = new MutationObserver(function () { self._syncInputRow(); });
-		observer.observe(origInputs, { attributes: true, attributeFilter: ['style'] });
+		self._observers = self._observers.concat(Plugins.utils.observe_mutations(
+			origInputs,
+			{ attributes: true, attributeFilter: ['style'] },
+			function () { self._syncInputRow(); },
+			true
+		));
 	}
 
 	// ── Sync nickname after config WS message is processed ──────────────────

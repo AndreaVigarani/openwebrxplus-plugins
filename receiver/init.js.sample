@@ -13,6 +13,7 @@
 // List the plugins you want to load (folder names). Order matters if plugins depend on each other.
 const PluginsToLoad = [
 	'uikit',
+	'ui_receiver',
 	'colorful_spectrum',
 	'connect_notify',
 	'frequency_far_jump',

@@ -181,6 +181,51 @@
 .owrx-uikit__mini-button {
 	position: fixed;
 	pointer-events: auto;
+	background: rgba(8, 10, 14, 0.92);
+	border-color: rgba(255, 255, 255, 0.22);
+	color: #f8f9fb;
+	box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+	backdrop-filter: blur(10px);
+	padding: 8px;
+	opacity: 0.96;
+	transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.owrx-uikit__mini-button:hover,
+.owrx-uikit__mini-button:focus-visible {
+	background: rgba(5, 7, 10, 0.98);
+	border-color: rgba(255, 255, 255, 0.34);
+	box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+	opacity: 1;
+}
+
+.owrx-uikit__resize-handle {
+	position: absolute;
+	pointer-events: auto;
+	z-index: 2;
+	background: transparent;
+	border: 0;
+	opacity: 0.7;
+	transition: opacity 0.2s ease;
+	touch-action: none;
+	outline: none;
+}
+
+.owrx-uikit__resize-handle:hover,
+.owrx-uikit__resize-handle:focus-visible {
+	opacity: 1;
+}
+
+.owrx-uikit__resize-handle::before {
+	content: "";
+	position: absolute;
+	background: rgba(255, 255, 255, 0.28);
+	border-radius: 999px;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+
+body.owrx-uikit--resizing {
+	user-select: none;
 }
 
 /* Settings modal — uses createModal (pm classes) with .owrx-uikit__modal
@@ -463,7 +508,8 @@
 }
 
 .owrx-uikit--hidden .owrx-uikit__panel,
-.owrx-uikit--hidden .owrx-uikit__settings-btn {
+.owrx-uikit--hidden .owrx-uikit__settings-btn,
+.owrx-uikit--hidden .owrx-uikit__resize-handle {
 	display: none;
 }
 
@@ -486,6 +532,23 @@
 	height: 240px;
 }
 
+.owrx-uikit--pos-bottom .owrx-uikit__resize-handle {
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 12px;
+	transform: translateY(-50%);
+	cursor: ns-resize;
+}
+
+.owrx-uikit--pos-bottom .owrx-uikit__resize-handle::before {
+	left: 50%;
+	top: 50%;
+	width: 72px;
+	height: 4px;
+	transform: translate(-50%, -50%);
+}
+
 .owrx-uikit--pos-top {
 	left: 0;
 	right: 0;
@@ -495,6 +558,23 @@
 .owrx-uikit--pos-top .owrx-uikit__panel {
 	width: 100%;
 	height: 240px;
+}
+
+.owrx-uikit--pos-top .owrx-uikit__resize-handle {
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 12px;
+	transform: translateY(50%);
+	cursor: ns-resize;
+}
+
+.owrx-uikit--pos-top .owrx-uikit__resize-handle::before {
+	left: 50%;
+	top: 50%;
+	width: 72px;
+	height: 4px;
+	transform: translate(-50%, -50%);
 }
 
 .owrx-uikit--pos-right {
@@ -508,6 +588,23 @@
 	height: 100%;
 }
 
+.owrx-uikit--pos-right .owrx-uikit__resize-handle {
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 12px;
+	transform: translateX(-50%);
+	cursor: ew-resize;
+}
+
+.owrx-uikit--pos-right .owrx-uikit__resize-handle::before {
+	left: 50%;
+	top: 50%;
+	width: 4px;
+	height: 72px;
+	transform: translate(-50%, -50%);
+}
+
 .owrx-uikit--pos-left {
 	top: 0;
 	left: 0;
@@ -517,6 +614,23 @@
 .owrx-uikit--pos-left .owrx-uikit__panel {
 	width: 320px;
 	height: 100%;
+}
+
+.owrx-uikit--pos-left .owrx-uikit__resize-handle {
+	right: 0;
+	top: 0;
+	bottom: 0;
+	width: 12px;
+	transform: translateX(50%);
+	cursor: ew-resize;
+}
+
+.owrx-uikit--pos-left .owrx-uikit__resize-handle::before {
+	left: 50%;
+	top: 50%;
+	width: 4px;
+	height: 72px;
+	transform: translate(-50%, -50%);
 }
 
 .owrx-uikit--pos-bottom .owrx-uikit__mini-button {

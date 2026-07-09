@@ -24,13 +24,16 @@
  *  - add findCommonPrefix() method to find the common prefix of an array of strings
  * 0.7:
  *  - wrap_func: guard after_cb call with typeof check so null/undefined after_cb is safe
+ * 0.8:
+ *  - add observe_mutations() helper to standardize MutationObserver setup
+ *  - add disconnect_observers() helper to safely tear down observer handles
  */
 
 // Disable CSS loading for this plugin
 Plugins.utils.no_css = true;
 
 // Utils plugin version
-Plugins.utils._version = 0.7;
+Plugins.utils._version = 0.8;
 
 /**
  * Wrap an existing function with before and after callbacks.
@@ -122,6 +125,113 @@ Plugins.utils.on_ready = function (callback) {
     console.error("Plugins.utils.on_ready() expects a function as a parameter.");
   }
 }
+
+/**
+ * Observe DOM mutations on one or more targets using a shared callback.
+ *
+ * This helper abstracts common MutationObserver boilerplate used by plugins.
+ * It preserves backward compatibility by being purely additive and by handling
+ * missing targets gracefully.
+ *
+ * @param {Element|Node|Array<Element|Node>|NodeList|HTMLCollection} targets Target node(s) to observe.
+ * @param {Object} options MutationObserver options passed to observer.observe().
+ * @param {function(mutationsList, observer, target):void} callback Callback executed on each mutation batch.
+ * @param {boolean} run_now If true, callback is executed once immediately after observing each valid target.
+ * @returns {Array<Object>} Array of observer handles: { observer, target, disconnect }
+ *
+ * @description
+ * - Invalid/missing targets are skipped silently.
+ * - If MutationObserver is unavailable, an empty array is returned.
+ * - The returned handles can be passed directly to disconnect_observers().
+ *
+ * @example
+ * var handles = Plugins.utils.observe_mutations(
+ *   [tabEl, uikitRoot],
+ *   { attributes: true, attributeFilter: ['class'] },
+ *   function () {
+ *     refreshUI();
+ *   },
+ *   true
+ * );
+ *
+ * @example
+ * Plugins.utils.disconnect_observers(handles);
+ */
+Plugins.utils.observe_mutations = function (targets, options, callback, run_now) {
+  var handles = [];
+  if (typeof MutationObserver === 'undefined') return handles;
+  if (typeof callback !== 'function') {
+    console.error("Plugins.utils.observe_mutations() expects a callback function.");
+    return handles;
+  }
+
+  var list = [];
+  if (typeof targets === 'undefined' || targets === null) {
+    return handles;
+  } else if (targets instanceof NodeList || targets instanceof HTMLCollection || Array.isArray(targets)) {
+    list = Array.prototype.slice.call(targets);
+  } else {
+    list = [targets];
+  }
+
+  list.forEach(function (target) {
+    if (!target || typeof target.nodeType === 'undefined') return;
+
+    var observer = new MutationObserver(function (mutationsList) {
+      callback(mutationsList, observer, target);
+    });
+
+    observer.observe(target, options || {});
+
+    var handle = {
+      observer: observer,
+      target: target,
+      disconnect: function () {
+        observer.disconnect();
+      }
+    };
+
+    handles.push(handle);
+
+    if (run_now) {
+      callback([], observer, target);
+    }
+  });
+
+  return handles;
+};
+
+/**
+ * Disconnect one or more observer handles previously returned by
+ * observe_mutations().
+ *
+ * @param {Object|Array<Object>} handles A single handle or array of handles.
+ * @returns {number} Number of successfully disconnected handles.
+ *
+ * @description
+ * - Accepts a single handle, an array, or any falsy value.
+ * - Safely ignores invalid entries.
+ */
+Plugins.utils.disconnect_observers = function (handles) {
+  if (!handles) return 0;
+
+  var list = Array.isArray(handles) ? handles : [handles];
+  var disconnected = 0;
+
+  list.forEach(function (h) {
+    if (!h) return;
+
+    if (typeof h.disconnect === 'function') {
+      h.disconnect();
+      disconnected++;
+    } else if (h.observer && typeof h.observer.disconnect === 'function') {
+      h.observer.disconnect();
+      disconnected++;
+    }
+  });
+
+  return disconnected;
+};
 
 Plugins.utils.deepMerge = function (target, source) {
   if (typeof target !== 'object' || target === null) target = {};

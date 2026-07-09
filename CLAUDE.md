@@ -26,6 +26,21 @@ Each plugin is a folder under `receiver/` or `map/` containing at minimum `plugi
 - **uikit** (`receiver/uikit/uikit.js`) — Dockable panel, settings modal, plugin modals, toasts, loading overlays. Version 0.3+.
 - **notify** (`receiver/notify/notify.js`) — Deprecated in favor of `uikit.toast()`. Has backward-compat shim.
 
+## Utility plugin governance
+
+- When adding **new functionality** to a utility plugin (for example `receiver/utils/utils.js`), always bump that plugin's `_version` and add a matching changelog entry in the file header comments.
+- Always document new utility functions in two places:
+  - thorough inline function comments in the JS source
+  - plugin README updates with usage and examples
+- Any plugin that depends on newly added utility functionality must require the exact new minimum version with `Plugins.isLoaded('utils', x)`.
+- Keep utility functions backward-compatible.
+- If backward compatibility cannot be preserved, stop and ask for direction before implementing a breaking change.
+
+## Instruction alignment
+
+- Always follow these project instructions together with `copilot-instructions.md` and any higher-priority assistant/system instructions.
+- When new stable conventions are learned during implementation, update this file and related utility/plugin docs to keep guidance in sync.
+
 ## uikit migration
 
 Existing plugins are being migrated to use uikit for their UI. Rules:
@@ -34,7 +49,7 @@ Existing plugins are being migrated to use uikit for their UI. Rules:
 - The original plugin is left untouched for backward compatibility.
 - Migrated plugins capture `_baseUrl` at load time via `document.currentScript.src` and use it for auto-loading dependencies.
 - Migrated plugins require `uikit >= 0.3` and `utils >= 0.6`.
-- **Only bump dependency version checks** (`Plugins.isLoaded('uikit', x)` and `Plugins.isLoaded('utils', x)`) when the plugin actually uses a feature introduced in that version. Do not blindly bump to latest just because you touched the plugin. Current versions: `uikit = 0.5`, `utils = 0.7`.
+- **Only bump dependency version checks** (`Plugins.isLoaded('uikit', x)` and `Plugins.isLoaded('utils', x)`) when the plugin actually uses a feature introduced in that version. Do not blindly bump to latest just because you touched the plugin. Current versions: `uikit = 0.5`, `utils = 0.8`.
 - Use `var ui = Plugins.uikit;` as the local shorthand alias inside migrated plugin `init()` functions.
 
 ## uikit specifics

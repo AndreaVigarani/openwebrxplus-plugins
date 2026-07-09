@@ -6,7 +6,7 @@ tags: [uikit, status, progressbar]
 
 # ui_status
 
-Mirrors the OpenWebRX+ status progress bars (`#openwebrx-panel-status`) into a footer strip pinned at the bottom of the uikit panel. The footer is always visible regardless of which tab is active. The original status panel is hidden (but kept in the DOM so all OWRX+ update paths continue to write to it); a `MutationObserver` on each original bar keeps the mirrors in sync in real time.
+Mirrors the OpenWebRX+ status progress bars (`#openwebrx-panel-status`) into a footer strip pinned at the bottom of the uikit panel. The footer is always visible regardless of which tab is active. The original status panel is hidden (but kept in the DOM so all OWRX+ update paths continue to write to it); observer handling is wired through `Plugins.utils.observe_mutations()` for real-time sync.
 
 ## Features
 
@@ -19,7 +19,7 @@ Mirrors the OpenWebRX+ status progress bars (`#openwebrx-panel-status`) into a f
 
 ## Dependencies
 
-- `utils >= 0.7`
+- `utils >= 0.8`
 - `uikit >= 0.5`
 
 ## Usage
@@ -40,11 +40,9 @@ await Plugins.load('/plugins/receiver/ui_status/ui_status.js');
 
 The footer strip uses `display: flex; flex-wrap: wrap` with `flex: 1 1 100px; min-width: 70px; max-width: 200px` on each bar. This drives automatic responsive wrapping:
 
-| Panel width | Layout |
-|---|---|
-| ≥ ~480 px | 1 row × 6 bars |
-| ~240–480 px | 2 rows × 3 bars |
-| ~140–240 px | 3 rows × 2 bars |
+- `>= ~480 px`: 1 row x 6 bars
+- `~240-480 px`: 2 rows x 3 bars
+- `~140-240 px`: 3 rows x 2 bars
 
 ## Code
 

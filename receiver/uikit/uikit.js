@@ -41,12 +41,15 @@
  *  - fade: content area uses opacity so native widgets fade in Firefox (matches Chrome)
  * 0.5:
  *  - setFooter(el) public API: pins a footer element below the content area; included in panel fade
+ * 0.6:
+ *  - docked panel can be resized by dragging its inner edge
+ *  - panel size slider uses 1% steps to match drag-resize behaviour
  */
 
 // Namespace
 Plugins.uikit = Plugins.uikit || {};
 
-Plugins.uikit._version = 0.5;
+Plugins.uikit._version = 0.6;
 
 // Capture base URL at load time — document.currentScript is only available
 // during script execution, not later in init(). Works for both local and
