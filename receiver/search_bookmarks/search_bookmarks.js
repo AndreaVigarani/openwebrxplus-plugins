@@ -1,241 +1,168 @@
-// Seaarch Bookmarks UI plugin for OpenWebRX+
+// Seaarch Bookmarks UI plugin for OpenWebRX+ >= v1.2.118
 // License: MIT
 // Switching frquency code is based on LZ2DMV "frequency_far_jump" plugin
+// You can reach Yannis on Telegram [@ysamouhos](https://t.me/ysamouhos) or [Github](https://github.com/ysamouhos)
 
-Plugins.search_bookmarks.init = function () {
-    if (!Plugins.isLoaded('utils', 0.1)) {
-      Plugins.load('https://0xaf.github.io/openwebrxplus-plugins/receiver/utils/utils.js');
-      Plugins._debug('Plugin "utils" has been loaded as dependency.');
-    }
-    // Create search section container
-    const searchSection = document.createElement('div');
-    searchSection.id = 'openwebrx-section-search-content';
-    searchSection.classList.add('openwebrx-section');
 
-    // Create search panel line
-    const searchPanelLine = document.createElement('div');
-    searchPanelLine.classList.add('openwebrx-search', 'openwebrx-panel-line');
-    searchSection.appendChild(searchPanelLine);
+Plugins.search_bookmarks.no_css = true;
+Plugins.search_bookmarks._version = 0.2;
+Plugins.search_bookmarks.url = '/bookmarks.json';
 
-    // Create search input grid
-    const searchGrid = document.createElement('div');
-    searchGrid.classList.add('openwebrx-search-grid');
-    searchPanelLine.appendChild(searchGrid);
+Plugins.search_bookmarks.init = async function () {
 
-    // Create search input field
-    const searchInput = document.createElement('input');
-    searchInput.type = 'text';
-    searchInput.id = 'owrx-search-input';
-    searchInput.placeholder = 'Search bookmarks...';
-    searchInput.classList.add('openwebrx-input');
-    searchGrid.appendChild(searchInput);
-
-    // Create search button
-    const searchButton = document.createElement('div');
-    searchButton.id = 'owrx-search-button';
-    searchButton.classList.add('openwebrx-button');
-    searchButton.textContent = 'Search';
-    searchButton.onclick = function() {
-        const searchTerm = searchInput.value.trim();
-        if (searchTerm) {
-            performBookmarkSearch(searchTerm);
+    if (!Plugins.isLoaded('utils', 0.4)) {
+        await Plugins.load('https://0xaf.github.io/openwebrxplus-plugins/receiver/utils/utils.js');
+        if (!Plugins.isLoaded('utils', 0.4)) {
+            console.error('search_bookmarks: plugin depends on "utils >= 0.4".');
+            return false;
         }
-    };
-    searchGrid.appendChild(searchButton);
-
-    // Create clear button
-    const clearButton = document.createElement('div');
-    clearButton.id = 'owrx-clear-search-button';
-    clearButton.classList.add('openwebrx-button');
-    clearButton.textContent = 'Clear';
-    clearButton.onclick = function() {
-        searchInput.value = '';
-        clearSearchResults();
-    };
-    searchGrid.appendChild(clearButton);
-
-    // Section divider to hide/show search panel
-    const searchSectionDivider = document.createElement('div');
-    searchSectionDivider.id = 'openwebrx-section-search';
-    searchSectionDivider.classList.add('openwebrx-section-divider');
-    searchSectionDivider.onclick = () => UI.toggleSection(searchSectionDivider);
-    searchSectionDivider.innerHTML = '&blacktriangledown;&nbsp;Search Bookmarks';
-
-    const resultsWrapper = document.createElement('div');
-    resultsWrapper.className = 'owrx-search-results-wrapper';
-      
-    // Create results container
-    const resultsContainer = document.createElement('div');
-    resultsContainer.id = 'owrx-search-results';
-    resultsContainer.className = 'owrx-search-results';
-    resultsWrapper.appendChild(resultsContainer);
-    searchSection.appendChild(resultsWrapper);
-
-    // Create loading indicator
-    const loadingIndicator = document.createElement('div');
-    loadingIndicator.id = 'owrx-search-loading';
-    loadingIndicator.classList.add('openwebrx-loading');
-    loadingIndicator.style.display = 'none';
-    loadingIndicator.textContent = 'Loading...';
-    searchSection.appendChild(loadingIndicator);
-
-    // Insert elements into DOM
-    const targetElement = document.getElementById('openwebrx-section-modes');
-    targetElement.parentNode.insertBefore(searchSectionDivider, targetElement);
-    targetElement.parentNode.insertBefore(searchSection, targetElement);
-
-    // Add keyboard support (search on Enter key)
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchButton.click();
-        }
-    });
-
-    // URL to fetch JSON data from (configure this as needed)
-    const BOOKMARKS_JSON_URL = '/bookmarks.json'; // Update with your actual URL
-
-    // Function to perform the search
-    async function performBookmarkSearch(term) {
-        const loading = document.getElementById('owrx-search-loading');
-        const resultsContainer = document.getElementById('owrx-search-results');
-        
-        try {
-            // Show loading indicator
-            loading.style.display = 'block';
-            resultsContainer.innerHTML = '';
-
-            // Fetch bookmarks data
-            const response = await fetch(BOOKMARKS_JSON_URL);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const bookmarks = await response.json();
-
-            // Filter bookmarks
-            const results = filterBookmarks(bookmarks, term.toLowerCase());
-            
-            // Display results
-	    console.log('Bookmarks:', results);
-            displaySearchResults(results);
-        } catch (error) {
-            console.error('Error fetching or processing bookmarks:', error);
-            resultsContainer.innerHTML = 
-                `<div class="openwebrx-error">Error loading bookmarks: ${error.message}</div>`;
-        } finally {
-            loading.style.display = 'none';
-        }
+        Plugins._debug('Plugin "utils" has been loaded as dependency.');
     }
 
-
-    function filterBookmarks(bookmarks, term) {
-        return bookmarks.filter(bookmark => {
-            // Search in multiple fields
-            return (
-                (bookmark.name && bookmark.name.toLowerCase().includes(term)) ||
-                (bookmark.frequency && bookmark.frequency.toString().includes(term)) ||
-                (bookmark.mode && bookmark.mode.toLowerCase().includes(term)) ||
-                (bookmark.description && bookmark.description.toLowerCase().includes(term))
-            );
-        });
+    function esc(s) {
+        return String(s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    // Display search results
-    function displaySearchResults(results) {
-        const container = document.getElementById('owrx-search-results');
-        container.innerHTML = '';
-        
-        if (results.length === 0) {
-            container.innerHTML = '<div class="owrx-no-results">No matches found</div>';
+    var remote = { data: [], failed: false };
+
+    function fetchRemote(then) {
+        var url = Plugins.search_bookmarks.url;
+        if (!url || remote.failed) { if (then) then(); return; }
+        fetch(url)
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(function (json) {
+                remote.data = Array.isArray(json) ? json.filter(function (b) {
+                    return b && b.name && b.frequency;
+                }) : [];
+                if (then) then();
+            })
+            .catch(function (err) {
+                remote.failed = true;
+                console.warn('search_bookmarks: no remote bookmark list at "'
+                    + url + '" (' + err.message + '); '
+                    + 'searching currently loaded bookmarks only.');
+                if (then) then();
+            });
+    }
+
+    Plugins.utils.on_ready(function () {
+        var $dialog = $('#openwebrx-dialog-search-bookmarks');
+
+        if (!$dialog.length
+            || typeof bookmarks === 'undefined' || !bookmarks
+            || typeof bookmarks.showSearchDialog !== 'function') {
+            console.error('search_bookmarks: built-in search dialog not found; '
+                + 'this plugin requires OpenWebRX+ >= v1.2.118. For older versions use "search_bookmarks_old" plugin..');
             return;
         }
-        
-        results.forEach(bookmark => {
-            const resultItem = document.createElement('div');
-            resultItem.className = 'owrx-search-result';
-            
-            // Create result content
-            const content = document.createElement('div');
-            content.className = 'owrx-search-result-content';
-            
-            // Name
-            const name = document.createElement('div');
-            name.className = 'owrx-search-result-name';
-            name.textContent = bookmark.name || 'Unnamed Bookmark';
-            content.appendChild(name);
-            
-            // Frequency and mode
-            if (bookmark.frequency) {
-                const freq = document.createElement('div');
-                freq.className = 'owrx-search-result-freq';
-                freq.textContent = `${bookmark.frequency} kHz`;
-                if (bookmark.mode) {
-                    freq.textContent += ` (${bookmark.mode})`;
-                }
-                content.appendChild(freq);
-            }
-            
-            // Description
-            if (bookmark.description) {
-                const desc = document.createElement('div');
-                desc.className = 'owrx-search-result-desc';
-                desc.textContent = bookmark.description;
-                content.appendChild(desc);
-            }
-            
-            resultItem.appendChild(content);
-            
-            // Click handler
-            resultItem.addEventListener('click', () => {
-		handleBookmarkSelection(bookmark);
+
+        BookmarkBar.prototype.searchBookmarks = function () {
+            var text = this.$search.find('#search-text').val().trim().toLowerCase();
+            var seen = {};
+            var all = this.getAllBookmarks().filter(function (b) {
+                seen[b.name + '|' + b.frequency + '|' + (b.modulation || '')] = true;
+                return true;
             });
-            
-            container.appendChild(resultItem);
-        });
-    }
+            remote.data.forEach(function (b) {
+                var key = b.name + '|' + b.frequency + '|' + (b.modulation || '');
+                if (!seen[key]) { seen[key] = true; all.push(b); }
+            });
 
-    function selectBookmark(bookmark) {
-        console.log("Selected bookmark:", bookmark);
-        
-        // Tune to the bookmark's frequency
-        if (bookmark.frequency && typeof receiver !== 'undefined') {
-            const freq = parseFloat(bookmark.frequency) * 1000; // Convert kHz to Hz
-            if (!isNaN(freq)) {
-                receiver.setFrequency(freq);
-                
-                // Set mode if specified
-                if (bookmark.mode) {
-                    receiver.setMode(bookmark.mode.toUpperCase());
-                }
-                
-                // Optional: Close search results after selection
-                resultsContainer.innerHTML = '';
-                searchInput.value = '';
+            var digits = text.replace(/[.,\s]/g, '');
+            var isFreq = digits.length > 0 && /^\d+$/.test(digits);
+
+            var result = !text ? [] : all.filter(function (b) {
+                return (b.name && b.name.toLowerCase().indexOf(text) >= 0)
+                    || (b.description && b.description.toLowerCase().indexOf(text) >= 0)
+                    || (b.modulation && b.modulation.toLowerCase().indexOf(text) >= 0)
+                    || (isFreq && b.frequency && String(b.frequency).indexOf(digits) >= 0);
+            });
+
+            result.sort(function (a, b) {
+                return a.name.localeCompare(b.name) || (a.frequency - b.frequency);
+            });
+
+            Plugins.search_bookmarks._results = result;
+
+            var rows = result.map(function (b, i) {
+                return '<tr' + (b.description ? ' title="' + esc(b.description) + '"' : '') + '>'
+                    + '<td class="search-left">' + esc(b.name) + '</td>'
+                    + '<td class="search-right">'
+                    + '<a href="#" data-idx="' + i + '">'
+                    + Utils.printFreq(b.frequency) + '</a>'
+                    + '</td></tr>';
+            }).join('\n');
+
+            this.$search.find('#search-results').html(
+                '<table class="search-results">' + rows + '</table>'
+            );
+        };
+
+        var pendingTune = null;
+
+        function tuneToBookmark(b) {
+            if (!b || !b.frequency) return;
+            var f = Math.round(b.frequency);
+
+            if (Math.abs(f - center_freq) <= bandwidth / 2) {
+                UI.tuneBookmark(b);
+                UI.toggleScanner(false);
+                return;
             }
+
+            var key = UI.getDemodulatorPanel().getMagicKey();
+            ws.send(JSON.stringify({
+                "type": "setfrequency", "params": { "frequency": f, "key": key }
+            }));
+            UI.toggleScanner(false);
+
+            clearInterval(pendingTune);
+            var waited = 0;
+            pendingTune = setInterval(function () {
+                if (Math.abs(f - center_freq) <= bandwidth / 2) {
+                    clearInterval(pendingTune);
+                    UI.tuneBookmark(b);
+                } else if ((waited += 250) >= 5000) {
+                    clearInterval(pendingTune);
+                    console.warn('search_bookmarks: backend did not retune to '
+                        + f + ' Hz (center frequency changes may be disabled).');
+                }
+            }, 250);
         }
-    }
 
-    // Handle bookmark selection (tune to frequency, etc.)
-    function handleBookmarkSelection(bookmark) {
-      var to_what = Math.round(bookmark.frequency);
-      if (to_what > bandwidth / 2 || to_what < -bandwidth / 2) {
-        var f = to_what;
-        var k = $('#openwebrx-panel-receiver').demodulatorPanel().getMagicKey();
+        $dialog.find('#search-results').on('click', 'a[data-idx]', function (e) {
+            e.preventDefault();
+            var results = Plugins.search_bookmarks._results || [];
+            tuneToBookmark(results[$(this).data('idx')]);
+        });
 
-        // Ask the backend over the WS to switch the frequency for us
-        ws.send(JSON.stringify({
-          "type": "setfrequency", "params": { "frequency": f, "key": k }
-        }));
+        var origShowSearchDialog = BookmarkBar.prototype.showSearchDialog;
+        BookmarkBar.prototype.showSearchDialog = function (text) {
+            var me = this;
+            fetchRemote(function () {
+                if (me.$search.is(':visible') && me.$search.find('#search-text').val()) {
+                    me.searchBookmarks();
+                }
+            });
+            return origShowSearchDialog.call(this, text);
+        };
 
-      } else {
-        // The frequency is within the boundaries of the current profile,
-        // just use the original set_offset_frequency
-        orig.apply(thisArg, args);
-      }
-    }
+        var debounce = null;
+        $dialog.find('#search-text').on('input', function () {
+            clearTimeout(debounce);
+            debounce = setTimeout(function () { bookmarks.searchBookmarks(); }, 200);
+        });
 
-    function clearSearchResults() {
-        document.getElementById('owrx-search-results').innerHTML = '';
-    }
+        $('#openwebrx-panel-receiver').find('.openwebrx-bookmark-button')
+            .attr('title', 'Add bookmark... (right-click to search)');
+
+        Plugins._debug('search_bookmarks: hooked into the built-in search dialog.');
+    });
 
     return true;
 };

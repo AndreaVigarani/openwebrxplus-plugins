@@ -85,6 +85,7 @@ Each plugin is documented in its own folder.
 |[mouse_freq](receiver/mouse_freq)|Show frequency under cursor on the waterfall|
 |[screenshot](receiver/screenshot)|Take screenshot of the waterfall|
 |[screen_reader](receiver/screen_reader)|Provide spoken notifications for accessibility|
+|[search_bookmarks](receiver/search_bookmarks)|Search all OWRX bookmarks and click to tune ([Yannis](#contributors))|
 |[show_band_plan](receiver/show_band_plan)|Show the band plan ribbon by default ([fustinoni-net](#contributors))|
 |[smeter](receiver/smeter)|Show S-Meter (needs calibration!) ([Joerg](#contributors))|
 |[sort_profiles](receiver/sort_profiles)|Sort profiles by name|
@@ -108,7 +109,7 @@ Each plugin is documented in its own folder.
 
 | Name | Description |
 | :------ | :---------- |
-|[~~search_bookmarks~~](receiver/search_bookmarks)|(**deprecated** in OWRX+ v1.2.118)) Search all OWRX bookmarks and click to tune ([Yannis](#contributors))|
+|[search_bookmarks_old](receiver/search_bookmarks_old)|This is the old version of the plugin, working on OWRX+ before v1.2.118([Yannis](#contributors))|
 |[~~show_band_plan~~](receiver/show_band_plan)|Show the band plan ribbon by default ([fustinoni-net](#contributors))|
 |[~~keyboard_shortcuts~~](receiver/keyboard_shortcuts)|Add keyboard shortcuts|
 |[~~set_waterfall_theme~~](receiver/set_waterfall_theme)|Set the default waterfall theme ([fustinoni-net](#contributors))|
